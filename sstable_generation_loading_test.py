@@ -145,18 +145,28 @@ class TestSSTableGenerationAndLoading(Tester):
         node1, node2 = cluster.nodelist()
         time.sleep(.5)
 
-        def create_schema(session, compression):
+        def create_schema(session, compression, drop_column):
             self.create_ks(session, ks, rf=2)
             self.create_cf(session, "standard1", compression=compression)
             self.create_cf(session, "counter1", compression=compression, columns={'v': 'counter'})
+            if drop_column:
+                self.create_cf(session, "drop_one", compression=compression, columns={'c1': 'text', 'c2': 'text', 'c3': 'text'})
+            else:
+                self.create_cf(session, "drop_one", compression=compression, columns={'c1': 'text', 'c2': 'text', 'c3': 'text', 'c4': 'text'})            
 
         debug("creating keyspace and inserting")
         session = self.cql_connection(node1)
-        create_schema(session, pre_compression)
+        create_schema(session, pre_compression, False)
 
         for i in range(NUM_KEYS):
             session.execute("UPDATE standard1 SET v='%d' WHERE KEY='%d' AND c='col'" % (i, i))
             session.execute("UPDATE counter1 SET v=v+1 WHERE KEY='%d'" % i)
+            session.execute("UPDATE drop_one SET c1='%d',c2='%d',c3='%d',c4='%d' WHERE KEY='%d'" % (i, i, i, i, i))
+
+        session.execute("ALTER TABLE drop_one DROP c4")
+        
+        for i in range(NUM_KEYS):
+            session.execute("UPDATE drop_one SET c1='%d',c2='%d',c3='%d' WHERE KEY='%d'" % (i, i, i, NUM_KEYS+i))            
 
         node1.nodetool('drain')
         node1.stop()
@@ -182,7 +192,7 @@ class TestSSTableGenerationAndLoading(Tester):
 
         debug("re-creating the keyspace and column families.")
         session = self.cql_connection(node1)
-        create_schema(session, post_compression)
+        create_schema(session, pre_compression, True)
         time.sleep(2)
 
         debug("Calling sstableloader")
@@ -222,3 +232,4 @@ class TestSSTableGenerationAndLoading(Tester):
 
         debug("Reading data back one more time")
         read_and_validate_data(session)
+        
