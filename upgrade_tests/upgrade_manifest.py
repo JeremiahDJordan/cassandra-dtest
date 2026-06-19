@@ -189,9 +189,9 @@ indev_6_0_x = VersionMeta(name='indev_6_0_x', family=CASSANDRA_6_0, variant='ind
 current_6_0_x = VersionMeta(name='current_6_0_x', family=CASSANDRA_6_0, variant='current', version='6.0-alpha1', min_proto_v=4, max_proto_v=5, java_versions=(11,17,21))
 
 
-indev_trunk = VersionMeta(name='indev_trunk', family=TRUNK, variant='indev', version='github:apache/trunk', min_proto_v=4, max_proto_v=5, java_versions=(11,17,21))
+indev_trunk = VersionMeta(name='indev_trunk', family=TRUNK, variant='indev', version='github:apache/trunk', min_proto_v=4, max_proto_v=5, java_versions=(11,17,21,25))
 # TODO – add current_7_0_x when this gets uncommented (when 7.0-alpha1 is released)
-# current_7_0_x = VersionMeta(name='current_7_0_x', family=CASSANDRA_7_0, variant='current', version='7.0-alpha1', min_proto_v=4, max_proto_v=5, java_versions=(11,17,21))
+# current_7_0_x = VersionMeta(name='current_7_0_x', family=CASSANDRA_7_0, variant='current', version='7.0-alpha1', min_proto_v=4, max_proto_v=5, java_versions=(11,17,21,25))
 
 # MANIFEST maps a VersionMeta representing a line/variant to a list of other VersionMeta's representing supported upgrades
 # Note on versions: 2.0 must upgrade to 2.1. Once at 2.1 or newer, upgrade is supported to any later version, including trunk (for now).
