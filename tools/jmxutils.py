@@ -18,8 +18,13 @@ CLASSPATH_SEP = ';' if common.is_win() else ':'
 
 def jolokia_classpath():
     if 'JAVA_HOME' in os.environ:
+        # tools.jar was removed in JDK 9 - the attach API now lives in the jdk.attach module and is on the
+        # default module path, so no tools.jar is needed (and pointing at a non-existent one is misleading).
+        # Only prepend it when it actually exists (JDK 8), otherwise fall back to just the Jolokia agent jar.
         tools_jar = os.path.join(os.environ['JAVA_HOME'], 'lib', 'tools.jar')
-        return CLASSPATH_SEP.join((tools_jar, JOLOKIA_JAR))
+        if os.path.exists(tools_jar):
+            return CLASSPATH_SEP.join((tools_jar, JOLOKIA_JAR))
+        return JOLOKIA_JAR
     else:
         logger.warning("Environment variable $JAVA_HOME not present: jmx-based " +
                        "tests may fail because of missing $JAVA_HOME/lib/tools.jar.")

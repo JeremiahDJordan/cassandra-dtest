@@ -774,7 +774,12 @@ class TestConsistency(Tester):
         @jira_ticket CASSANDRA-18766
         """
         cluster = self.cluster
-        self.cluster.populate(3).start()
+        # The Jolokia reads below attach to the nodes right after a heavy stress run. Under that sustained
+        # load the JVM can take longer than the 10.5s attach timeout to service the lazy attach signal, so the
+        # attach fails intermittently ("target process doesn't respond ... or HotSpot VM not loaded"), most
+        # visibly on JDK 25. Start the attach listener eagerly so the attach socket exists from boot and the
+        # attach does not depend on the busy target answering a signal. See CASSANDRA-21171.
+        self.cluster.populate(3).start(jvm_args=['-XX:+StartAttachListener'])
         node1 = cluster.nodelist()[0]
         node1.stress(['write', 'n=100000', '-rate', 'threads=8', '-schema', 'replication(strategy=SimpleStrategy,replication_factor=2)'])
         node1.stress(['read no-warmup duration=1m', '-rate', 'threads=8', '-errors', 'skip-read-validation'])
